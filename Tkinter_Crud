@@ -1,0 +1,200 @@
+from tkinter import *
+from tkinter.messagebox import *
+import sqlite3
+root = Tk()
+root.title("CRUD")
+root.geometry("500x400")
+# conn = sqlite3.connect('address_db.db')
+# c = conn.cursor()
+# # c.execute("""
+# #     CREATE TABLE addresses (
+# #         first_name text,
+# #         last_name text,
+# #         address text,
+# #         city text,
+# #         state text,
+# #         zipcode integer
+# #     )""")
+
+# conn.commit()
+# conn.close()
+
+fnamelabel = Label(root, text="Enter first name",width=30)
+fnamelabel.grid(row=0, column=0, padx=20)
+lnamelabel = Label(root, text="Enter last name", width=30)
+lnamelabel.grid(row=1, column=0, padx=20)
+addresslabel = Label(root, text="Enter Address", width=30)
+addresslabel.grid(row=2, column=0, padx=20)
+citylabel = Label(root, text="Enter City", width=30)
+citylabel.grid(row=3, column=0, padx=20)
+statelabel = Label(root, text="Enter State", width=30)
+statelabel.grid(row=4, column=0, padx=20)
+zipcodelabel = Label(root, text="Enter Zipcode", width=30)
+zipcodelabel.grid(row=5, column=0, padx=20)
+selectidlabel = Label(root, text="Enter ID for Delete", width=30)
+selectidlabel.grid(row=9, column=0, padx=20)
+
+
+fname = Entry(root, width=30)
+fname.grid(row=0, column=1, padx=20)
+lname = Entry(root, width=30)
+lname.grid(row=1, column=1, padx=20)
+address = Entry(root, width=30)
+address.grid(row=2, column=1, padx=20)
+city = Entry(root, width=30)
+city.grid(row=3, column=1, padx=20)
+state = Entry(root, width=30)
+state.grid(row=4, column=1, padx=20)
+zipcode = Entry(root, width=30)
+zipcode.grid(row=5, column=1, padx=20)
+selectidbox = Entry(root, width=30)
+selectidbox.grid(row=9, column=1, padx=20)
+
+def submit():
+    var =   {
+        ":fname":fname.get(),
+        ":lname":lname.get(),
+        ":address":address.get(),
+        ":city":city.get(),
+        ":state":state.get(),
+        ":zipcode":int(zipcode.get())
+    }
+    showinfo("Values",str(var))
+    conn = sqlite3.connect('address_db.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO addresses VALUES (:fname,:lname,:address,:city,:state,:zipcode)",
+    {
+        "fname":fname.get(),
+        "lname":lname.get(),
+        "address":address.get(),
+        "city":city.get(),
+        "state":state.get(),
+        "zipcode":int(zipcode.get())
+    })
+    conn.commit()
+    conn.close()
+    # clear text boxs
+    fname.delete(0,END)
+    lname.delete(0,END)
+    address.delete(0,END)
+    city.delete(0,END)
+    state.delete(0,END)
+    zipcode.delete(0,END)
+
+
+def query():
+    conn = sqlite3.connect('address_db.db')
+    c = conn.cursor()
+    c.execute("SELECT *,oid FROM addresses")
+    records = c.fetchall()
+    print_records = []
+    for r in records:
+        d = r[0]+" "+r[1]+"    "+r[4]
+        print_records.append(d)
+    f = Frame(root)
+    i=0
+    while i < len(print_records):
+        lb = Label(f,text=f"{print_records[i]}")
+        lb.grid(row=i,column=0)
+        i+=1        
+    print(print_records)
+    f.grid(row=8, column=0, columnspan=2)
+    conn.commit()
+    conn.close()
+
+
+def delete():
+    conn = sqlite3.connect('address_db.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM addresses WHERE oid=:id",{"id":int(selectidbox.get())})
+    conn.commit()
+    conn.close()
+
+
+def edit():
+    global fname_editor,lname_editor,address_editor,city_editor,state_editor,zipcode_editor,editor
+    editor = Tk()
+    editor.title("Update A Record")
+    editor.geometry("500x200")
+    conn = sqlite3.connect('address_db.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM addresses where oid = :id",{
+        "id":selectidbox.get()
+    })
+    records = c.fetchall()
+    print(records[0][0])
+    conn.commit()
+    conn.close()
+    fnamelabel_editor = Label(editor, text="Enter first name",width=30)
+    fnamelabel_editor.grid(row=0, column=0, padx=20)
+    lnamelabel_editor = Label(editor, text="Enter last name", width=30)
+    lnamelabel_editor.grid(row=1, column=0, padx=20)
+    addresslabel_editor = Label(editor, text="Enter Address", width=30)
+    addresslabel_editor.grid(row=2, column=0, padx=20)
+    citylabel_editor = Label(editor, text="Enter City", width=30)
+    citylabel_editor.grid(row=3, column=0, padx=20)
+    statelabel_editor = Label(editor, text="Enter State", width=30)
+    statelabel_editor.grid(row=4, column=0, padx=20)
+    zipcodelabel_editor = Label(editor, text="Enter Zipcode", width=30)
+    zipcodelabel_editor.grid(row=5, column=0, padx=20)
+    fname_editor = Entry(editor, width=30)
+    fname_editor.grid(row=0, column=1, padx=20)
+    lname_editor = Entry(editor, width=30)
+    lname_editor.grid(row=1, column=1, padx=20)
+    address_editor = Entry(editor, width=30)
+    address_editor.grid(row=2, column=1, padx=20)
+    city_editor = Entry(editor, width=30)
+    city_editor.grid(row=3, column=1, padx=20)
+    state_editor = Entry(editor, width=30)
+    state_editor.grid(row=4, column=1, padx=20)
+    zipcode_editor = Entry(editor, width=30)
+    zipcode_editor.grid(row=5, column=1, padx=20)
+    update_btn_editor = Button(editor,text="Save Changes", command=update)
+    update_btn_editor.grid(row=11, column=0, columnspan=2, ipadx=20, ipady=5)
+    fname_editor.insert(0,records[0][0])
+    lname_editor.insert(0,records[0][1])
+    address_editor.insert(0,records[0][2])
+    city_editor.insert(0,records[0][3])
+    state_editor.insert(0,records[0][4])
+    zipcode_editor.insert(0,records[0][5])
+    editor.mainloop()
+
+
+def update():
+    # showinfo("Info",fname_editor.get())
+    conn = sqlite3.connect('address_db.db')
+    c = conn.cursor()
+    c.execute(""" UPDATE addresses SET 
+        first_name = :fname,
+        last_name = :lname,
+        address = :address,
+        city = :city,
+        state = :state,
+        zipcode = :zip
+        WHERE oid = :oid""",
+        {
+            "fname":fname_editor.get(),
+            "lname":lname_editor.get(),
+            "address":address_editor.get(),
+            "city":city_editor.get(),
+            "state":state_editor.get(),
+            "zip":int(zipcode_editor.get()),
+            "oid":int(selectidbox.get())
+        })
+    conn.commit()
+    conn.close()
+    editor.destroy()
+
+submit_btn = Button(root,text="Submit", command=submit)
+submit_btn.grid(row=6, column=0, columnspan=2, ipadx=20, ipady=5)
+
+query_btn = Button(root,text="Get Data", command=query)
+query_btn.grid(row=7, column=0, columnspan=2, ipadx=20, ipady=5)
+
+delete_btn = Button(root,text="Delete Record", command=delete)
+delete_btn.grid(row=10, column=0, columnspan=2, ipadx=20, ipady=5)
+
+
+update_btn = Button(root,text="Update Record", command=edit)
+update_btn.grid(row=11, column=0, columnspan=2, ipadx=20, ipady=5)
+root.mainloop()
